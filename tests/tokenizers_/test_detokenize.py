@@ -363,6 +363,15 @@ def test_sentencepiece_leading_space_preserved():
     assert len(logprobs) == 4
 
 
+def test_mistral_sentencepiece_tokens_are_text():
+    """Logprob tokens of a Mistral SentencePiece tokenizer are text, not
+    pieces like `▁Paris` or `<0x0A>`."""
+    tokenizer = MistralTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.3")
+    ids = tokenizer.encode("The capital is Paris.\nYes", add_special_tokens=False)
+    tokens = convert_ids_list_to_tokens(tokenizer, ids)
+    assert tokens == [" The", " capital", " is", " Paris", ".", "\n", "Yes"]
+
+
 def test_whitespace_run_tokens_stay_distinct():
     """▁, ▁▁, ▁▁▁ must produce different-length space strings."""
     tok = _mock_tokenizer(

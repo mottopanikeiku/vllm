@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 from collections.abc import Sequence
 from functools import cached_property
+from itertools import groupby
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast, overload
 
@@ -422,8 +423,20 @@ class MistralTokenizer(TokenizerLike):
     def decode(
         self, ids: Sequence[int] | int, skip_special_tokens: bool = False
     ) -> str:
-        return self.transformers_tokenizer.decode(
-            ids, skip_special_tokens=skip_special_tokens
+        if skip_special_tokens or not self.is_spm:
+            return self.transformers_tokenizer.decode(
+                ids, skip_special_tokens=skip_special_tokens
+            )
+        # Keeping special tokens makes mistral-common return the SentencePiece
+        # pieces of all tokens (`▁Hello`, `<0x0A>`), so decode the text between
+        # the special tokens instead.
+        if isinstance(ids, int):
+            ids = [ids]
+        return "".join(
+            "".join(map(self.tokenizer.id_to_piece, group))
+            if is_special
+            else self.tokenizer.decode(list(group), SpecialTokenPolicy.IGNORE)
+            for is_special, group in groupby(ids, self._is_special_token_id)
         )
 
     def batch_decode(

@@ -890,7 +890,7 @@ class TestMistralTokenizer:
             (
                 False,
                 (
-                    "<s>[INST]▁Hello▁world▁![/INST]▁Hello</s>",
+                    "<s>[INST]Hello world ![/INST]Hello</s>",
                     "<s>[INST]Hello world ![/INST]Hello</s>",
                 ),
             ),

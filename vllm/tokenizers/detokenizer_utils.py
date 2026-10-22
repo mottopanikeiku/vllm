@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 
 from vllm.tokenizers import TokenizerLike
+from vllm.utils.mistral import is_mistral_tokenizer
 
 
 def _replace_none_with_empty(tokens: list[str | None]):
@@ -79,7 +80,9 @@ def get_leading_space_marker(tokenizer: TokenizerLike) -> str | None:
         return cached  # type: ignore[return-value]
 
     backend = getattr(tokenizer, "backend_tokenizer", None)
-    if backend is None:
+    if is_mistral_tokenizer(tokenizer):
+        result = "▁" if tokenizer.is_spm else None
+    elif backend is None:
         result = None
     else:
         result = None
